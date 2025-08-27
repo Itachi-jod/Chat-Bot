@@ -1,6 +1,7 @@
 "use server";
 
 import { unrecognizedCommandAssistance } from "@/ai/flows/unrecognized-command-assistant";
+import { askGemini as askGeminiFlow } from "@/ai/flows/ask-gemini-flow";
 import axios from "axios";
 
 const SEARCH_API = "https://dns-pxx0.onrender.com/search?query=";
@@ -116,12 +117,8 @@ export async function getSong(query: string) {
 
 export async function askGemini(question: string) {
     try {
-        const apiUrl = `https://kaiz-apis.gleeze.com/api/gemini-pro?ask=${encodeURIComponent(question)}&uid=100001139113438&apikey=${KAIZJI_API_KEY}`;
-        const res = await axios.get(apiUrl);
-        if (res.data?.response) {
-            return { response: res.data.response };
-        }
-        return { error: "Could not get a response from Gemini." };
+        const result = await askGeminiFlow({ question });
+        return { response: result.answer };
     } catch (err: any) {
         console.error("Gemini API error:", err);
         return { error: err.message || "An unexpected error occurred while contacting Gemini API." };
