@@ -54,6 +54,7 @@ export default function Terminal() {
   const [theme, setTheme] = useState('purple');
   const [startTime] = useState(Date.now());
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
+  const initialized = useRef(false);
   const { toast } = useToast();
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -64,7 +65,10 @@ export default function Terminal() {
   }, []);
 
   useEffect(() => {
-    addHistory(<TypingAnimation text="Initializing CyberStream..." onComplete={() => addHistory(<WelcomeComponent />)} />);
+    if (!initialized.current) {
+      initialized.current = true;
+      addHistory(<TypingAnimation text="Initializing CyberStream..." onComplete={() => addHistory(<WelcomeComponent />)} />);
+    }
   }, [addHistory]);
 
   useEffect(() => {
