@@ -160,3 +160,13 @@ export async function getPinterestImages(query: string, amount: number) {
     return { error: "Failed to fetch Pinterest images." };
   }
 }
+
+export async function getQuote() {
+  try {
+    const res = await axios.get("https://motivational-api-theta.vercel.app/random");
+    return { quote: res.data.quote || "Stay motivated!" };
+  } catch (err) {
+    console.error("Quote API error:", err);
+    return { error: "Failed to fetch a quote. Stay motivated!" };
+  }
+}

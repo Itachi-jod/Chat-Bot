@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -29,6 +29,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
+      <li><span className="text-accent font-bold">quote</span> - Get a random motivational quote.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
       <li><span className="text-accent font-bold">clock</span> - Toggle the live digital clock.</li>
@@ -328,6 +329,15 @@ export default function Terminal() {
           );
         } else {
           addHistory(<p className="text-red-500">Error: No images found.</p>);
+        }
+        break;
+      case 'quote':
+        addHistory(<p>Fetching a quote...</p>);
+        const quoteResult = await getQuote();
+        if (quoteResult.error) {
+          addHistory(<p className="text-red-500">Error: {quoteResult.error}</p>);
+        } else {
+          addHistory(<p className="text-primary italic">"{quoteResult.quote}"</p>);
         }
         break;
       default:
