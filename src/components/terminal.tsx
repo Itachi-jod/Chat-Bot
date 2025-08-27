@@ -29,6 +29,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
+      <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
       <li><span className="text-accent font-bold">contact</span> - Show owner's contact information.</li>
       <li><span className="text-accent font-bold">logout</span> - Logs out the current user.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
@@ -50,6 +51,8 @@ export default function Terminal() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [theme, setTheme] = useState('purple');
+  const [startTime] = useState(Date.now());
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user, logout } = useAuth();
@@ -68,9 +71,10 @@ export default function Terminal() {
     endOfHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history]);
 
-  const handleSetTheme = (theme: string) => {
+  const handleSetTheme = (newTheme: string) => {
     const root = document.documentElement;
-    switch(theme) {
+    setTheme(newTheme);
+    switch(newTheme) {
       case 'green':
         root.style.setProperty('--primary', '128 100% 51%');
         root.style.setProperty('--accent', '128 100% 51%');
@@ -88,6 +92,15 @@ export default function Terminal() {
         root.style.setProperty('--accent', '128 100% 51%');
     }
   };
+
+  const getUptime = () => {
+    const now = Date.now();
+    const uptimeMs = now - startTime;
+    const seconds = Math.floor((uptimeMs / 1000) % 60);
+    const minutes = Math.floor((uptimeMs / (1000 * 60)) % 60);
+    const hours = Math.floor(uptimeMs / (1000 * 60 * 60));
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
 
   const handleCommand = async (command: string) => {
     const [cmd, ...args] = command.trim().split(' ');
@@ -121,15 +134,23 @@ export default function Terminal() {
         );
         break;
       case 'logout':
-        logout();
         addHistory(<p>Logging out...</p>);
-        router.push('/login');
+        setTimeout(() => logout(), 1000);
+        break;
+      case 'status':
+        addHistory(
+          <div>
+            <p><span className="text-primary">User:</span> {user}</p>
+            <p><span className="text-primary">Theme:</span> {theme}</p>
+            <p><span className="text-primary">Uptime:</span> {getUptime()}</p>
+          </div>
+        );
         break;
       case 'theme':
-        const theme = (args[0] || 'purple').toLowerCase();
-        if (['purple', 'green', 'blue', 'red'].includes(theme)) {
-          handleSetTheme(theme);
-          addHistory(<p>Theme changed to <span className="text-primary">{theme}</span>.</p>);
+        const newTheme = (args[0] || 'purple').toLowerCase();
+        if (['purple', 'green', 'blue', 'red'].includes(newTheme)) {
+          handleSetTheme(newTheme);
+          addHistory(<p>Theme changed to <span className="text-primary">{newTheme}</span>.</p>);
         } else {
           addHistory(<p className="text-red-500">Error: Invalid theme. Available themes: purple, green, blue, red.</p>);
         }

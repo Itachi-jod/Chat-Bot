@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import MatrixRain from '@/components/matrix-rain';
 import { Button } from '@/components/ui/button';
@@ -10,20 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
-  const { user, login } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (user) {
-      const from = searchParams.get('from') || '/';
-      router.replace(from);
-    }
-  }, [user, router, searchParams]);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { login } = useAuth();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
+      setIsLoggingIn(true);
       login(username.trim());
     }
   };
@@ -31,11 +23,11 @@ export default function LoginPage() {
   return (
     <main className="relative w-full h-screen overflow-hidden flex items-center justify-center">
       <MatrixRain />
-      <div className="absolute inset-0 z-10 flex items-center justify-center">
+      <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
         <Card className="w-full max-w-sm bg-black/75 backdrop-blur-sm border-glow">
           <CardHeader>
             <CardTitle className="text-2xl text-primary text-glow">CyberStream Login</CardTitle>
-            <CardDescription>Enter your username to continue</CardDescription>
+            <CardDescription>Enter your username to access the terminal</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -47,9 +39,10 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 className="bg-transparent text-accent border-accent focus:ring-accent"
                 required
+                disabled={isLoggingIn}
               />
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white">
-                Enter the Matrix
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white" disabled={isLoggingIn}>
+                {isLoggingIn ? 'Authenticating...' : 'Enter the Matrix'}
               </Button>
             </form>
           </CardContent>

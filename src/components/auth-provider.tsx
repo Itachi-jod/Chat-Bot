@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 interface AuthContextType {
@@ -18,6 +18,7 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     try {
@@ -35,13 +36,15 @@ const AuthProviderContent = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!isLoading) {
       const isAuthPage = pathname === '/login';
+      const from = searchParams.get('from');
+
       if (!user && !isAuthPage) {
         router.replace(`/login?from=${pathname}`);
       } else if (user && isAuthPage) {
-        router.replace('/');
+         router.replace(from || '/');
       }
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, isLoading, pathname, router, searchParams]);
 
 
   const login = (username: string) => {
