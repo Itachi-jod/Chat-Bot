@@ -14,6 +14,7 @@ const DOWNLOAD_API = "https://dens-yt-dl0-cf47.onrender.com/api/download?url=";
 const MP3_DOWNLOAD_API = "https://kaiz-apis.gleeze.com/api/ytmp3-v2";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
+const XVIDEOS_API = "https://kaiz-apis.gleeze.com/api/xvideos";
 
 
 type VideoStream = {
@@ -299,5 +300,34 @@ export async function downloadFromUrl(url: string) {
     } catch (err: any) {
         console.error("Universal Downloader Error:", err.message || err);
         return { error: "Failed to download video from the provided link." };
+    }
+}
+
+export async function getXVideo(query?: string) {
+    try {
+        let url;
+        if (query) {
+            url = `${XVIDEOS_API}/search?q=${encodeURIComponent(query)}&apikey=${KAIZJI_API_KEY}`;
+        } else {
+            const randomPage = Math.floor(Math.random() * 50) + 1;
+            url = `${XVIDEOS_API}?page=${randomPage}&limit=30&apikey=${KAIZJI_API_KEY}`;
+        }
+
+        const res = await axios.get(url);
+        const data = res.data;
+
+        if (!data.videos || data.videos.length === 0) {
+            return { error: "No videos found." };
+        }
+
+        const randomVideo = data.videos[Math.floor(Math.random() * data.videos.length)];
+
+        return {
+            title: randomVideo.title,
+            videoUrl: randomVideo.mp4url,
+        };
+    } catch (err: any) {
+        console.error("XVideo API error:", err);
+        return { error: err.message || "An unexpected error occurred while fetching video." };
     }
 }

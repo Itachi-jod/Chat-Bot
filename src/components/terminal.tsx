@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl, getXVideo } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -31,6 +31,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">tikstalk [username]</span> - Stalk a TikTok user's profile.</li>
+       <li><span className="text-accent font-bold">xv [query]</span> - Search for a video. Use `xv` for random.</li>
       <li><span className="text-accent font-bold">quote</span> - Get a random motivational quote.</li>
       <li><span className="text-accent font-bold">attack [name]</span> - Get a roast for someone.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
@@ -405,6 +406,22 @@ export default function Terminal() {
             )
         }
         break;
+        case 'xv':
+            addHistory(<p>Searching for a special video...</p>);
+            const xvResult = await getXVideo(query);
+            if (xvResult.error) {
+                addHistory(<p className="text-red-500">Error: {xvResult.error}</p>);
+            } else if (xvResult.videoUrl) {
+                addHistory(
+                    <div>
+                        <p>Now playing: <span className="font-bold text-primary">{xvResult.title}</span></p>
+                        <video controls className="w-full max-w-2xl mt-2 rounded border-glow" src={xvResult.videoUrl}>
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                )
+            }
+            break;
       default:
         const suggestion = await getUnrecognizedCommandSuggestion(command);
         addHistory(

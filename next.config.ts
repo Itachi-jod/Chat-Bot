@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
         hostname: 'p16-sign-sg.tiktokcdn.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn77-pic.xvideos-cdn.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
