@@ -1,7 +1,8 @@
 import MatrixRain from "@/components/matrix-rain";
 import Terminal from "@/components/terminal";
+import { Suspense } from "react";
 
-export default function Home() {
+function HomePage() {
   return (
     <main className="relative w-full h-screen overflow-hidden">
       <MatrixRain />
@@ -10,4 +11,12 @@ export default function Home() {
       </div>
     </main>
   );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomePage />
+    </Suspense>
+  )
 }

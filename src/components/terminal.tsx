@@ -5,15 +5,17 @@ import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, 
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import { useAuth } from './auth-provider';
+import { useRouter } from 'next/navigation';
 
 type HistoryItem = {
   id: number;
   content: React.ReactNode;
 };
 
-const UserPrompt = () => (
+const UserPrompt = ({ user }: { user: string | null }) => (
   <span className="text-accent">
-    [user@cyberstream]~${' '}
+    [{user || 'user'}@cyberstream]~${' '}
   </span>
 );
 
@@ -28,6 +30,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">contact</span> - Show owner's contact information.</li>
+      <li><span className="text-accent font-bold">logout</span> - Logs out the current user.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
       <li><span className="text-accent font-bold">welcome</span> - Shows the welcome message again.</li>
@@ -49,6 +52,9 @@ export default function Terminal() {
   const [isProcessing, setIsProcessing] = useState(false);
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
 
   const addHistory = useCallback((item: React.ReactNode) => {
     setHistory(prev => [...prev, { id: Date.now() + Math.random(), content: item }]);
@@ -89,7 +95,7 @@ export default function Terminal() {
     
     addHistory(
       <p>
-        <UserPrompt />
+        <UserPrompt user={user} />
         <span className="text-foreground">{command}</span>
       </p>
     );
@@ -113,6 +119,11 @@ export default function Terminal() {
             <p>Phone: 9815598649</p>
           </div>
         );
+        break;
+      case 'logout':
+        logout();
+        addHistory(<p>Logging out...</p>);
+        router.push('/login');
         break;
       case 'theme':
         const theme = (args[0] || 'purple').toLowerCase();
@@ -289,7 +300,7 @@ export default function Terminal() {
       </div>
       <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-2">
         <label htmlFor="command-input" className="text-accent flex-shrink-0">
-          [user@cyberstream]~$
+         <UserPrompt user={user} />
         </label>
         <input
           id="command-input"
