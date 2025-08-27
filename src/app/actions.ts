@@ -1,5 +1,8 @@
 "use server";
 
+import { config } from "dotenv";
+config();
+
 import { unrecognizedCommandAssistance } from "@/ai/flows/unrecognized-command-assistant";
 import { askGemini as askGeminiFlow } from "@/ai/flows/ask-gemini-flow";
 import axios from "axios";
