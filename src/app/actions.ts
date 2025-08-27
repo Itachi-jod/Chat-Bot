@@ -125,7 +125,7 @@ export async function getSong(query: string) {
         const downloadRes = await axios.get(`${MP3_DOWNLOAD_API}?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`);
         const downloadData = downloadRes.data;
         
-        if (!downloadData.result?.url) {
+        if (downloadData.status !== 'success' || !downloadData.result?.url) {
           console.error("Audio API response error:", downloadData);
           return { error: "Could not fetch MP3 URL from API." };
         }
