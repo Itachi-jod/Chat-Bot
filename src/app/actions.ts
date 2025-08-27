@@ -8,7 +8,7 @@ import { askGemini as askGeminiFlow } from "@/ai/flows/ask-gemini-flow";
 import axios from "axios";
 
 const SEARCH_API = "https://ytbr-azure.vercel.app/api/yt?type=search&q=";
-const DOWNLOAD_API = "https://dens-yt-dl0.onrender.com/api/download?url=";
+const DOWNLOAD_API = "https://dens-yt-dl0-cf47.onrender.com/api/download?url=";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 
@@ -16,7 +16,7 @@ const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 type VideoStream = {
   quality: string;
   download_url: string;
-  size: string;
+  size?: string;
   key: string;
 };
 
@@ -29,6 +29,7 @@ type VideoSearchResult = {
 export async function searchVideo(query: string): Promise<VideoSearchResult> {
   try {
     let videoUrl = "";
+    let videoTitle = "";
 
     const ytMatch = query.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})|youtu\.be\/([a-zA-Z0-9_-]{11})/);
     if (ytMatch) {
@@ -43,27 +44,37 @@ export async function searchVideo(query: string): Promise<VideoSearchResult> {
         return { error: "No video found." };
       }
       videoUrl = videos[0].url;
+      videoTitle = videos[0].title;
     }
 
     const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
-    if (!downloadRes.ok) throw new Error("Failed to fetch download links.");
+    if (!downloadRes.ok) {
+        throw new Error(`Failed to fetch download links.`);
+    }
 
     const downloadData = await downloadRes.json();
     const streamsData = downloadData.response;
-
-    if (!streamsData) {
+    
+    if (!streamsData || typeof streamsData !== 'object' || Object.keys(streamsData).length === 0) {
       return { error: "No downloadable video found." };
+    }
+    
+    if (!videoTitle) {
+      // Fallback for direct URL pastes where search didn't happen
+      const firstStream = streamsData[Object.keys(streamsData)[0]];
+      // a bit of a hack to get a title if possible
+      videoTitle = firstStream.title ? firstStream.title.replace(/ \([^)]+\)\.mp4$/, '') : "Untitled Video";
     }
 
     const streams = Object.keys(streamsData).map(key => ({
       key,
-      quality: streamsData[key].quality,
+      quality: key,
       download_url: streamsData[key].download_url,
-      size: streamsData[key].size,
+      size: streamsData[key].size || 'N/A',
     }));
 
     return {
-      title: downloadData.title,
+      title: videoTitle,
       streams,
     };
   } catch (err: any) {
