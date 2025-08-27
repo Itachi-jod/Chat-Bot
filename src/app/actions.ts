@@ -125,12 +125,12 @@ export async function getSong(query: string) {
         const downloadRes = await axios.get(`${MP3_DOWNLOAD_API}?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`);
         const downloadData = downloadRes.data;
         
-        if (downloadData.status !== true || !downloadData.result?.url) {
+        if (!downloadData || !downloadData.download_url) {
           console.error("Audio API response error:", downloadData);
           return { error: "Could not fetch MP3 URL from API." };
         }
 
-        return { title: downloadData.result.title || video.title, download_url: downloadData.result.url };
+        return { title: downloadData.title || video.title, download_url: downloadData.download_url };
     } catch (err: any) {
         console.error("Sing command error:", err);
         return { error: err.message || "An unexpected error occurred." };
