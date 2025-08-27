@@ -9,6 +9,7 @@ import axios from "axios";
 
 const SEARCH_API = "https://ytbr-azure.vercel.app/api/yt?type=search&q=";
 const DOWNLOAD_API = "https://dens-yt-dl0-cf47.onrender.com/api/download?url=";
+const MP3_DOWNLOAD_API = "https://yt-dl-api-z623.onrender.com/api/mp3?url=";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 
@@ -49,7 +50,7 @@ export async function searchVideo(query: string): Promise<VideoSearchResult> {
 
     const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
     if (!downloadRes.ok) {
-        throw new Error(`Failed to fetch download links.`);
+        throw new Error(`Failed to fetch download links. ${DOWNLOAD_API}${encodeURIComponent(videoUrl)}`);
     }
 
     const downloadData = await downloadRes.json();
@@ -120,27 +121,19 @@ export async function getSong(query: string) {
         }
         const video = videos[0];
         const videoUrl = video.url;
-        const videoTitle = video.title;
 
-        const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
+        const downloadRes = await fetch(MP3_DOWNLOAD_API + encodeURIComponent(videoUrl));
         if (!downloadRes.ok) {
-            throw new Error(`Failed to fetch download links.`);
+            throw new Error(`Failed to fetch download link.`);
         }
         
         const downloadData = await downloadRes.json();
-        const streamsData = downloadData.response;
 
-        if (!streamsData || typeof streamsData !== 'object' || Object.keys(streamsData).length === 0) {
-          return { error: "No downloadable audio found." };
-        }
-        
-        const audioStream = Object.values(streamsData).find((s: any) => s.title?.toLowerCase().includes('audio')) as any;
-
-        if (!audioStream?.download_url) {
-          return { error: "Could not fetch MP3 URL." };
+        if (!downloadData.url) {
+          return { error: "Could not fetch MP3 URL from API." };
         }
 
-        return { title: videoTitle, download_url: audioStream.download_url };
+        return { title: downloadData.title || video.title, download_url: downloadData.url };
     } catch (err: any) {
         console.error("Sing command error:", err);
         return { error: err.message || "An unexpected error occurred." };
