@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
         hostname: 'i.waifu.pics',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
