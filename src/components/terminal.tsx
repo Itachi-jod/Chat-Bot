@@ -20,7 +20,7 @@ const HelpComponent = () => (
   <div>
     <p className="text-primary font-bold mb-2">CyberStream Command List</p>
     <ul className="list-disc list-inside">
-      <li><span className="text-accent font-bold">video [search|url]</span> - Search and download a YouTube video.</li>
+      <li><span className="text-accent font-bold">video [search|url]</span> - Search and play a YouTube video.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
@@ -118,12 +118,17 @@ export default function Terminal() {
         const result = await searchVideo(query);
         if (result.error) {
           addHistory(<p className="text-red-500">Error: {result.error}</p>);
-        } else {
+        } else if (result.streams && result.streams.length > 0) {
+            const videoStream = result.streams.find(s => s.quality.includes('720p')) || result.streams.find(s => s.quality.includes('360p')) || result.streams[0];
             addHistory(
               <div>
-                <p>Found video: <span className="font-bold text-primary">{result.title}</span></p>
-                <p>Available downloads:</p>
-                <ul className="list-disc list-inside ml-4">
+                <p>Now playing: <span className="font-bold text-primary">{result.title}</span> ({videoStream.quality})</p>
+                <video controls className="w-full max-w-2xl mt-2 rounded border-glow">
+                  <source src={videoStream.download_url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                 <p className="mt-2">Other downloads:</p>
+                 <ul className="list-disc list-inside ml-4">
                   {result.streams?.map((stream) => (
                     <li key={stream.key}>
                       <a 
@@ -141,6 +146,8 @@ export default function Terminal() {
                 </ul>
               </div>
             );
+        } else {
+          addHistory(<p className="text-red-500">Error: No video streams found.</p>);
         }
         break;
       default:
