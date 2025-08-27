@@ -38,10 +38,11 @@ export async function searchVideo(query: string): Promise<VideoSearchResult> {
       if (!searchRes.ok) throw new Error("Failed to search for video.");
       
       const searchData = await searchRes.json();
-      if (!searchData.videos || searchData.videos.length === 0) {
+      const videos = searchData.data?.items;
+      if (!videos || videos.length === 0) {
         return { error: "No video found." };
       }
-      videoUrl = searchData.videos[0].url;
+      videoUrl = videos[0].url;
     }
 
     const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
@@ -100,10 +101,11 @@ export async function getSong(query: string) {
     try {
         const searchRes = await axios.get(SEARCH_API + encodeURIComponent(query));
         const results = searchRes.data;
-        if (!results.videos || results.videos.length === 0) {
+        const videos = results.data?.items;
+        if (!videos || videos.length === 0) {
           return { error: "No videos found for this query." };
         }
-        const video = results.videos[0];
+        const video = videos[0];
         const videoUrl = video.url;
 
         const apiUrl = `https://kaiz-apis.gleeze.com/api/ytdown-mp3?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`;
