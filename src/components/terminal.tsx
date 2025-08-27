@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import { useAuth } from './auth-provider';
 import { useRouter } from 'next/navigation';
+import { Clock } from 'lucide-react';
 
 type HistoryItem = {
   id: number;
@@ -30,6 +31,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
+      <li><span className="text-accent font-bold">clock</span> - Toggle the live digital clock.</li>
       <li><span className="text-accent font-bold">contact</span> - Show owner's contact information.</li>
       <li><span className="text-accent font-bold">logout</span> - Logs out the current user.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
@@ -47,11 +49,29 @@ const WelcomeComponent = () => (
   </div>
 );
 
+const DigitalClock = () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 text-accent text-glow">
+      <Clock size={16} />
+      <span>{time.toLocaleTimeString()}</span>
+    </div>
+  );
+};
+
+
 export default function Terminal() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [theme, setTheme] = useState('purple');
+  const [showClock, setShowClock] = useState(true);
   const [startTime] = useState(Date.now());
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
@@ -158,6 +178,10 @@ export default function Terminal() {
         } else {
           addHistory(<p className="text-red-500">Error: Invalid theme. Available themes: purple, green, blue, red.</p>);
         }
+        break;
+      case 'clock':
+        setShowClock(prev => !prev);
+        addHistory(<p>Digital clock {showClock ? 'hidden' : 'shown'}.</p>);
         break;
       case 'video':
         if (!query) {
@@ -314,6 +338,10 @@ export default function Terminal() {
 
   return (
     <div className="h-full w-full bg-black/75 backdrop-blur-sm flex flex-col p-4 font-mono text-sm md:text-base">
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="text-lg text-primary text-glow">CyberStream</h1>
+        {showClock && <DigitalClock />}
+      </div>
       <div className="flex-grow overflow-y-auto pr-2">
         {history.map(item => (
           <div key={item.id} className="mb-2">
