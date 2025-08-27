@@ -9,7 +9,7 @@ import axios from "axios";
 
 const SEARCH_API = "https://ytbr-azure.vercel.app/api/yt?type=search&q=";
 const DOWNLOAD_API = "https://dens-yt-dl0-cf47.onrender.com/api/download?url=";
-const MP3_DOWNLOAD_API = "https://yt-dl-api-z623.onrender.com/api/mp3?url=";
+const MP3_DOWNLOAD_API = "https://kaiz-apis.gleeze.com/api/ytmp3-v2";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 
@@ -122,18 +122,15 @@ export async function getSong(query: string) {
         const video = videos[0];
         const videoUrl = video.url;
 
-        const downloadRes = await fetch(MP3_DOWNLOAD_API + encodeURIComponent(videoUrl));
-        if (!downloadRes.ok) {
-            throw new Error(`Failed to fetch download link.`);
-        }
+        const downloadRes = await axios.get(`${MP3_DOWNLOAD_API}?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`);
+        const downloadData = downloadRes.data;
         
-        const downloadData = await downloadRes.json();
-
-        if (!downloadData.url) {
+        if (!downloadData.result?.url) {
+          console.error("Audio API response error:", downloadData);
           return { error: "Could not fetch MP3 URL from API." };
         }
 
-        return { title: downloadData.title || video.title, download_url: downloadData.url };
+        return { title: downloadData.result.title || video.title, download_url: downloadData.result.url };
     } catch (err: any) {
         console.error("Sing command error:", err);
         return { error: err.message || "An unexpected error occurred." };
