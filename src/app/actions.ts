@@ -6,6 +6,8 @@ config();
 import { unrecognizedCommandAssistance } from "@/ai/flows/unrecognized-command-assistant";
 import { askGemini as askGeminiFlow } from "@/ai/flows/ask-gemini-flow";
 import axios from "axios";
+import { parse } from "url";
+
 
 const SEARCH_API = "https://ytbr-azure.vercel.app/api/yt?type=search&q=";
 const DOWNLOAD_API = "https://dens-yt-dl0-cf47.onrender.com/api/download?url=";
@@ -208,4 +210,94 @@ export async function getRoast(name?: string) {
       return { error: "Failed to fetch a roast. You're safe... for now." };
     }
   }
+}
+
+const PLATFORM_API_MAP = {
+    "instagram": "/api/meta/download",
+    "facebook": "/api/meta/download",
+    "tiktok": "/api/tiktok/download",
+    "youtube": "/api/youtube/download",
+    "reddit": "/api/reddit/download",
+    "pinterest": "/api/pinterest/download",
+    "threads": "/api/threads/download",
+    "linkedin": "/api/linkedin/download",
+    "twitter": "/api/twitter/download",
+    "x.com": "/api/twitter/download"
+};
+
+async function expandTikTokUrl(shortUrl: string) {
+    try {
+        const res = await axios.get(shortUrl, {
+            maxRedirects: 0,
+            validateStatus: (status) => status >= 200 && status < 400
+        });
+        if (res.status === 301 || res.status === 302) {
+            return res.headers.location;
+        }
+        return shortUrl;
+    } catch (err: any) {
+        if (err.response && (err.response.status === 301 || err.response.status === 302)) {
+            return err.response.headers.location;
+        }
+        return shortUrl;
+    }
+}
+
+export async function downloadFromUrl(url: string) {
+    try {
+        let finalUrl = url.replace(/\?$/, "");
+        let hostname = parse(finalUrl).hostname?.toLowerCase() || '';
+
+        if (hostname.includes("tiktok") && finalUrl.includes("vt.tiktok.com")) {
+            const expandedUrl = await expandTikTokUrl(finalUrl);
+            if (expandedUrl) {
+                finalUrl = expandedUrl;
+                hostname = parse(finalUrl).hostname?.toLowerCase() || '';
+            }
+        }
+
+        let apiEndpoint: string | null = null;
+        for (const key in PLATFORM_API_MAP) {
+            if (hostname.includes(key)) {
+                apiEndpoint = (PLATFORM_API_MAP as any)[key];
+                break;
+            }
+        }
+
+        if (!apiEndpoint) {
+            return { error: `Unsupported platform: ${hostname}` };
+        }
+
+        const apiUrl = `https://universaldownloaderapi.vercel.app${apiEndpoint}?url=${encodeURIComponent(finalUrl)}`;
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        const data = res.data;
+
+        let videoUrl = null;
+        let title = "Downloaded Video";
+
+        if (hostname.includes("instagram") || hostname.includes("facebook")) {
+            videoUrl = data?.data?.data?.[0]?.url;
+            title = data?.data?.data?.[0]?.title || `Instagram/Facebook Video`;
+        } else if (hostname.includes("tiktok")) {
+            videoUrl = data?.data?.video_no_watermark?.url || data?.data?.video_watermark?.url;
+            title = data?.data?.title || "TikTok Video";
+        } else if (hostname.includes("youtube")) {
+            videoUrl = data?.download_url;
+            title = data?.title || "YouTube Video";
+        } else if (hostname.includes("reddit") || hostname.includes("twitter") || hostname.includes("x.com")) {
+            videoUrl = data?.data?.[0]?.video_url;
+            title = data?.data?.[0]?.title || `Video from ${hostname}`;
+        }
+
+        if (!videoUrl || !videoUrl.startsWith("http")) {
+            console.error("API response missing video URL:", data);
+            return { error: "Failed to get a downloadable video URL from the API." };
+        }
+
+        return { title, videoUrl };
+
+    } catch (err: any) {
+        console.error("Universal Downloader Error:", err.message || err);
+        return { error: "Failed to download video from the provided link." };
+    }
 }

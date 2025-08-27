@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -27,6 +27,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">ask [question]</span> - Ask a question to Gemini AI.</li>
       <li><span className="text-accent font-bold">video [search|url]</span> - Search for a video and play it.</li>
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
+      <li><span className="text-accent font-bold">dl [URL]</span> - Download video from a URL (IG, FB, YT, etc.).</li>
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">tikstalk [username]</span> - Stalk a TikTok user's profile.</li>
@@ -379,6 +380,29 @@ export default function Terminal() {
           addHistory(<p className="text-red-500">Error: {roastResult.error}</p>);
         } else {
           addHistory(<p className="text-red-400 select-all">{roastResult.roast}</p>);
+        }
+        break;
+      case 'dl':
+        const url = args[0];
+        if (!url) {
+            addHistory(<p className="text-red-500">Error: Please provide a URL to download from.</p>);
+            break;
+        }
+        addHistory(<p>Fetching video from <span className="text-primary">{url}</span>...</p>);
+        const dlResult = await downloadFromUrl(url);
+
+        if (dlResult.error) {
+            addHistory(<p className="text-red-500">Error: {dlResult.error}</p>);
+        } else if (dlResult.videoUrl) {
+            addHistory(
+                <div>
+                    <p>Now playing: <span className="font-bold text-primary">{dlResult.title}</span></p>
+                    <video controls className="w-full max-w-2xl mt-2 rounded border-glow">
+                        <source src={dlResult.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            )
         }
         break;
       default:
