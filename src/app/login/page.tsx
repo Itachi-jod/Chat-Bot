@@ -41,7 +41,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoggingIn}
               />
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-white" disabled={isLoggingIn}>
+              <Button type="submit" className="w-full bg-accent hover:bg-accent/80 text-black" disabled={isLoggingIn}>
                 {isLoggingIn ? 'Authenticating...' : 'Enter the Matrix'}
               </Button>
             </form>

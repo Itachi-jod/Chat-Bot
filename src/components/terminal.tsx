@@ -70,7 +70,7 @@ export default function Terminal() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [theme, setTheme] = useState('green');
+  const [theme, setTheme] = useState('purple');
   const [showClock, setShowClock] = useState(true);
   const [startTime] = useState(Date.now());
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
@@ -89,6 +89,7 @@ export default function Terminal() {
       initialized.current = true;
       addHistory(<TypingAnimation text="Initializing CyberStream..." onComplete={() => addHistory(<WelcomeComponent />)} />);
     }
+    handleSetTheme('purple');
   }, [addHistory]);
 
   useEffect(() => {
@@ -102,20 +103,20 @@ export default function Terminal() {
 
     switch(newTheme) {
       case 'purple':
-        primaryColor = '288 83% 55%';
-        accentColor = '288 83% 55%';
+        primaryColor = '290 82% 65%'; 
+        accentColor = '128 100% 51%';
         break;
       case 'blue':
         primaryColor = '217 91% 60%';
-        accentColor = '217 91% 60%';
+        accentColor = '190 91% 60%';
         break;
       case 'red':
-          primaryColor = '0 84% 60%';
-          accentColor = '0 84% 60%';
+        primaryColor = '0 84% 60%';
+        accentColor = '30 100% 50%';
         break;
       default: // green
         primaryColor = '128 100% 51%';
-        accentColor = '128 100% 51%';
+        accentColor = '100 100% 51%';
     }
     root.style.setProperty('--primary', primaryColor);
     root.style.setProperty('--accent', accentColor);
@@ -175,7 +176,7 @@ export default function Terminal() {
         );
         break;
       case 'theme':
-        const newTheme = (args[0] || 'green').toLowerCase();
+        const newTheme = (args[0] || 'purple').toLowerCase();
         if (['purple', 'green', 'blue', 'red'].includes(newTheme)) {
           handleSetTheme(newTheme);
           addHistory(<p>Theme changed to <span className="text-primary">{newTheme}</span>.</p>);
