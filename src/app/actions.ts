@@ -7,7 +7,7 @@ import { unrecognizedCommandAssistance } from "@/ai/flows/unrecognized-command-a
 import { askGemini as askGeminiFlow } from "@/ai/flows/ask-gemini-flow";
 import axios from "axios";
 
-const SEARCH_API = "https://dns-pxx0.onrender.com/search?query=";
+const SEARCH_API = "https://ytbr-azure.vercel.app/api/yt?type=search&q=";
 const DOWNLOAD_API = "https://dens-yt-dl0.onrender.com/api/download?url=";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
@@ -38,10 +38,10 @@ export async function searchVideo(query: string): Promise<VideoSearchResult> {
       if (!searchRes.ok) throw new Error("Failed to search for video.");
       
       const searchData = await searchRes.json();
-      if (!searchData || searchData.length === 0) {
+      if (!searchData.videos || searchData.videos.length === 0) {
         return { error: "No video found." };
       }
-      videoUrl = searchData[0].url;
+      videoUrl = searchData.videos[0].url;
     }
 
     const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
@@ -100,11 +100,11 @@ export async function getSong(query: string) {
     try {
         const searchRes = await axios.get(SEARCH_API + encodeURIComponent(query));
         const results = searchRes.data;
-        if (!results || results.length === 0) {
+        if (!results.videos || results.videos.length === 0) {
           return { error: "No videos found for this query." };
         }
-        const video = results[0];
-        const videoUrl = `https://youtu.be/${video.videoId}`;
+        const video = results.videos[0];
+        const videoUrl = video.url;
 
         const apiUrl = `https://kaiz-apis.gleeze.com/api/ytdown-mp3?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`;
         const mp3Res = await axios.get(apiUrl);
