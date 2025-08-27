@@ -61,9 +61,10 @@ export async function searchVideo(query: string): Promise<VideoSearchResult> {
     
     if (!videoTitle) {
       // Fallback for direct URL pastes where search didn't happen
-      const firstStream = streamsData[Object.keys(streamsData)[0]];
+      const firstStreamKey = Object.keys(streamsData)[0];
+      const firstStream = streamsData[firstStreamKey];
       // a bit of a hack to get a title if possible
-      videoTitle = firstStream.title ? firstStream.title.replace(/ \([^)]+\)\.mp4$/, '') : "Untitled Video";
+      videoTitle = firstStream.title ? firstStream.title.replace(/\s*\([^)]+\)\.mp4$/, '') : "Untitled Video";
     }
 
     const streams = Object.keys(streamsData).map(key => ({
@@ -113,19 +114,33 @@ export async function getSong(query: string) {
         const searchRes = await axios.get(SEARCH_API + encodeURIComponent(query));
         const results = searchRes.data;
         const videos = results.data?.items;
+
         if (!videos || videos.length === 0) {
-          return { error: "No videos found for this query." };
+          return { error: "No songs found for this query." };
         }
         const video = videos[0];
         const videoUrl = video.url;
+        const videoTitle = video.title;
 
-        const apiUrl = `https://kaiz-apis.gleeze.com/api/ytdown-mp3?url=${encodeURIComponent(videoUrl)}&apikey=${KAIZJI_API_KEY}`;
-        const mp3Res = await axios.get(apiUrl);
+        const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(videoUrl));
+        if (!downloadRes.ok) {
+            throw new Error(`Failed to fetch download links.`);
+        }
         
-        if (!mp3Res.data?.download_url) {
+        const downloadData = await downloadRes.json();
+        const streamsData = downloadData.response;
+
+        if (!streamsData || typeof streamsData !== 'object' || Object.keys(streamsData).length === 0) {
+          return { error: "No downloadable audio found." };
+        }
+        
+        const audioStream = Object.values(streamsData).find((s: any) => s.title?.toLowerCase().includes('audio')) as any;
+
+        if (!audioStream?.download_url) {
           return { error: "Could not fetch MP3 URL." };
         }
-        return mp3Res.data; // { title, download_url }
+
+        return { title: videoTitle, download_url: audioStream.download_url };
     } catch (err: any) {
         console.error("Sing command error:", err);
         return { error: err.message || "An unexpected error occurred." };
