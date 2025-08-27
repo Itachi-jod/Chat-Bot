@@ -21,6 +21,7 @@ const HelpComponent = () => (
     <p className="text-primary font-bold mb-2">CyberStream Command List</p>
     <ul className="list-disc list-inside">
       <li><span className="text-accent font-bold">video [search|url]</span> - Search and download a YouTube video.</li>
+      <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
       <li><span className="text-accent font-bold">welcome</span> - Shows the welcome message again.</li>
@@ -55,6 +56,27 @@ export default function Terminal() {
     endOfHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history]);
 
+  const handleSetTheme = (theme: string) => {
+    const root = document.documentElement;
+    switch(theme) {
+      case 'green':
+        root.style.setProperty('--primary', '128 100% 51%');
+        root.style.setProperty('--accent', '128 100% 51%');
+        break;
+      case 'blue':
+        root.style.setProperty('--primary', '217 91% 60%');
+        root.style.setProperty('--accent', '217 91% 60%');
+        break;
+      case 'red':
+          root.style.setProperty('--primary', '0 84% 60%');
+          root.style.setProperty('--accent', '0 84% 60%');
+        break;
+      default: // purple
+        root.style.setProperty('--primary', '288 83% 55%');
+        root.style.setProperty('--accent', '128 100% 51%');
+    }
+  };
+
   const handleCommand = async (command: string) => {
     const [cmd, ...args] = command.trim().split(' ');
     const query = args.join(' ');
@@ -77,6 +99,15 @@ export default function Terminal() {
         break;
       case 'welcome':
         addHistory(<WelcomeComponent />);
+        break;
+      case 'theme':
+        const theme = (args[0] || 'purple').toLowerCase();
+        if (['purple', 'green', 'blue', 'red'].includes(theme)) {
+          handleSetTheme(theme);
+          addHistory(<p>Theme changed to <span className="text-primary">{theme}</span>.</p>);
+        } else {
+          addHistory(<p className="text-red-500">Error: Invalid theme. Available themes: purple, green, blue, red.</p>);
+        }
         break;
       case 'video':
         if (!query) {
