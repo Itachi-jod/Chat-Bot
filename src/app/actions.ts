@@ -170,3 +170,21 @@ export async function getQuote() {
     return { error: "Failed to fetch a quote. Stay motivated!" };
   }
 }
+
+export async function getTikTokUserInfo(username: string) {
+  if (!username) {
+    return { error: "Please provide a TikTok username." };
+  }
+  const url = `https://kaiz-apis.gleeze.com/api/tikstalk?username=${username}&apikey=${KAIZJI_API_KEY}`;
+  try {
+    const res = await axios.get(url);
+    if (res.data) {
+      return { data: res.data };
+    } else {
+      return { error: "Failed to fetch TikTok user info."}
+    }
+  } catch (err: any) {
+    console.error("TikTok Stalk API error:", err);
+    return { error: err.response?.data?.message || "Failed to fetch TikTok user info." };
+  }
+}

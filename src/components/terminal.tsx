@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -29,6 +29,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
+      <li><span className="text-accent font-bold">tikstalk [username]</span> - Stalk a TikTok user's profile.</li>
       <li><span className="text-accent font-bold">quote</span> - Get a random motivational quote.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
@@ -338,6 +339,35 @@ export default function Terminal() {
           addHistory(<p className="text-red-500">Error: {quoteResult.error}</p>);
         } else {
           addHistory(<p className="text-primary italic">"{quoteResult.quote}"</p>);
+        }
+        break;
+      case 'tikstalk':
+        const username = args[0];
+        if (!username) {
+            addHistory(<p className="text-red-500">Error: Please provide a TikTok username.</p>);
+            break;
+        }
+        addHistory(<p>Stalking TikTok user: <span className="text-primary">{username}</span>...</p>);
+        const tiktokResult = await getTikTokUserInfo(username);
+
+        if (tiktokResult.error) {
+            addHistory(<p className="text-red-500">Error: {tiktokResult.error}</p>);
+        } else if (tiktokResult.data) {
+            const info = tiktokResult.data;
+            addHistory(
+                <div className="flex items-start gap-4">
+                    <Image src={info.avatarLarger} alt={info.nickname} width={80} height={80} className="rounded-full border-glow" />
+                    <div className="text-sm">
+                        <p><span className="text-primary font-bold">Nickname:</span> {info.nickname}</p>
+                        <p><span className="text-primary font-bold">Username:</span> @{info.username}</p>
+                        <p><span className="text-primary font-bold">Bio:</span> {info.signature || "No bio"}</p>
+                        <p><span className="text-primary font-bold">Followers:</span> {info.followerCount}</p>
+                        <p><span className="text-primary font-bold">Following:</span> {info.followingCount}</p>
+                        <p><span className="text-primary font-bold">Likes:</span> {info.heartCount}</p>
+                        <p><span className="text-primary font-bold">Videos:</span> {info.videoCount}</p>
+                    </div>
+                </div>
+            )
         }
         break;
       default:
