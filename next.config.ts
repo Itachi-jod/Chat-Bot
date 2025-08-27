@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdn77-pic.xvideos-cdn.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.flux.party',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

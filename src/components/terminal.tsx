@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl, getXVideo } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl, getXVideo, getFluxImage } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -24,7 +24,8 @@ const HelpComponent = () => (
   <div>
     <p className="text-primary font-bold mb-2">CyberStream Command List</p>
     <ul className="list-disc list-inside">
-      <li><span className="text-accent font-bold">ask [question]</span> - Ask a question to Gemini AI.</li>
+      <li><span className="text-accent font-bold">gemini [question]</span> - Ask a question to Gemini AI.</li>
+      <li><span className="text-accent font-bold">flux [prompt]</span> - Generate an image with Flux.</li>
       <li><span className="text-accent font-bold">video [search|url]</span> - Search for a video and play it.</li>
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
       <li><span className="text-accent font-bold">dl [URL]</span> - Download video from a URL (IG, FB, YT, etc.).</li>
@@ -285,6 +286,7 @@ export default function Terminal() {
         }
         break;
       case 'ask':
+      case 'gemini':
         if (!query) {
           addHistory(<p className="text-red-500">Error: Please provide a question.</p>);
           break;
@@ -300,6 +302,21 @@ export default function Terminal() {
                     <p>{geminiResult.response}</p>
                 </div>
             )
+        }
+        break;
+       case 'flux':
+        if (!query) {
+          addHistory(<p className="text-red-500">Error: Please provide a prompt for the image.</p>);
+          break;
+        }
+        addHistory(<p>Generating image with Flux for: <span className="text-primary">{query}</span>...</p>);
+        const fluxResult = await getFluxImage(query);
+        if (fluxResult.error) {
+          addHistory(<p className="text-red-500">Error: {fluxResult.error}</p>);
+        } else if (fluxResult.imageUrl) {
+          addHistory(
+            <Image src={fluxResult.imageUrl} alt={`Flux image for: ${query}`} width={512} height={512} className="rounded-lg border-glow mt-2" />
+          );
         }
         break;
       case 'pinterest':

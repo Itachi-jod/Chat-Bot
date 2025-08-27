@@ -15,6 +15,8 @@ const MP3_DOWNLOAD_API = "https://kaiz-apis.gleeze.com/api/ytmp3-v2";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 const XVIDEOS_API = "https://kaiz-apis.gleeze.com/api/xvideos";
+const FLUX_API = "https://kaiz-apis.gleeze.com/api/flux";
+const GEMINI_API = "https://kaiz-apis.gleeze.com/api/gemini";
 
 
 type VideoStream = {
@@ -142,12 +144,35 @@ export async function getSong(query: string) {
 
 export async function askGemini(question: string) {
     try {
-        const result = await askGeminiFlow({ question });
-        return { response: result.answer };
+      const url = `${GEMINI_API}?prompt=${encodeURIComponent(question)}&apikey=${KAIZJI_API_KEY}`;
+      const res = await axios.get(url);
+      if (res.data?.response) {
+        return { response: res.data.response };
+      } else {
+        return { error: "Could not get a response from Gemini." };
+      }
     } catch (err: any) {
         console.error("Gemini API error:", err);
         return { error: err.message || "An unexpected error occurred while contacting Gemini API." };
     }
+}
+
+export async function getFluxImage(prompt: string) {
+  if (!prompt) {
+    return { error: "Please provide a prompt for the image." };
+  }
+  try {
+    const url = `${FLUX_API}?prompt=${encodeURIComponent(prompt)}&apikey=${KAIZJI_API_KEY}`;
+    const res = await axios.get(url);
+    if (res.data?.img_url) {
+      return { imageUrl: res.data.img_url };
+    } else {
+      return { error: "Could not generate an image from the prompt." };
+    }
+  } catch (err: any) {
+    console.error("Flux API error:", err);
+    return { error: err.message || "Failed to generate image." };
+  }
 }
 
 export async function getPinterestImages(query: string, amount: number) {
