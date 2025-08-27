@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
+import Image from 'next/image';
 
 type HistoryItem = {
   id: number;
@@ -20,7 +21,9 @@ const HelpComponent = () => (
   <div>
     <p className="text-primary font-bold mb-2">CyberStream Command List</p>
     <ul className="list-disc list-inside">
-      <li><span className="text-accent font-bold">video [search|url]</span> - Search and play a YouTube video.</li>
+      <li><span className="text-accent font-bold">video [search|url]</span> - Search for a video and play it.</li>
+      <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
+      <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
@@ -139,7 +142,7 @@ export default function Terminal() {
                         className="text-accent hover:text-glow hover:underline"
                         onClick={() => toast({ title: "Download Started", description: `Downloading ${result.title} (${stream.quality})`})}
                       >
-                        {stream.quality} ({stream.size})
+                        {stream.quality || 'Unknown quality'} ({stream.size})
                       </a>
                     </li>
                   ))}
@@ -148,6 +151,47 @@ export default function Terminal() {
             );
         } else {
           addHistory(<p className="text-red-500">Error: No video streams found.</p>);
+        }
+        break;
+      case 'waiko':
+      case 'w':
+        const type = (args[0]?.toLowerCase() as any) || 'random';
+        if (['waifu', 'neko', 'random'].includes(type)) {
+            addHistory(<p>Fetching {type} image...</p>);
+            const imgData = await getWaikoImage(type);
+            if (imgData.error) {
+                addHistory(<p className="text-red-500">Error: {imgData.error}</p>);
+            } else {
+                addHistory(
+                    <div>
+                        <p>Category: <span className="text-primary">{imgData.category}</span></p>
+                        <Image src={imgData.image} alt={imgData.category} width={300} height={400} className="rounded-lg border-glow mt-2" />
+                    </div>
+                )
+            }
+        } else {
+             addHistory(<p className="text-red-500">Error: Invalid type. Available types: waifu, neko.</p>);
+        }
+        break;
+      case 'sing':
+        if (!query) {
+          addHistory(<p className="text-red-500">Error: Please provide a song name to search for.</p>);
+          break;
+        }
+        addHistory(<p>Searching for song: <span className="text-primary">{query}</span>...</p>);
+        const songResult = await getSong(query);
+        if (songResult.error) {
+            addHistory(<p className="text-red-500">Error: {songResult.error}</p>);
+        } else {
+            addHistory(
+                <div>
+                    <p>Now playing: <span className="font-bold text-primary">{songResult.title}</span></p>
+                    <audio controls className="w-full max-w-2xl mt-2">
+                        <source src={songResult.download_url} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            )
         }
         break;
       default:
