@@ -42,12 +42,22 @@ const HelpComponent = () => (
 );
 
 const WelcomeComponent = () => (
-  <div>
-    <h1 className="text-2xl text-primary font-bold mb-2 text-glow">Welcome to CyberStream</h1>
-    <p>A futuristic hacker-style web bot interface.</p>
-    <p>Type <span className="text-accent">'help'</span> to see a list of available commands.</p>
+    <div className="font-mono">
+    <pre className="text-primary text-glow text-xs md:text-sm">
+      {`
+   _____      _            _      _                  
+  / ____|    | |          | |    (_)                 
+ | |    _   _| |__   ___  | |_    _  _ __ ___   __ _ 
+ | |   | | | | '_ \\ / _ \\ | __|  | || '_ \` _ \\ / _\` |
+ | |___| |_| | |_) |  __/ | |_   | || | | | | | (_| |
+  \\_____\\__,_|_.__/ \\___|  \\__|  |_||_| |_| |_|\\__,_|
+      `}
+    </pre>
+    <p className="mt-2">A futuristic hacker-style web bot interface.</p>
+    <p>Type <span className="text-accent font-bold">'help'</span> to see a list of available commands.</p>
   </div>
 );
+
 
 const DigitalClock = () => {
   const [time, setTime] = useState(new Date());
@@ -89,7 +99,6 @@ export default function Terminal() {
       initialized.current = true;
       addHistory(<TypingAnimation text="Initializing CyberStream..." onComplete={() => addHistory(<WelcomeComponent />)} />);
     }
-    handleSetTheme('purple');
   }, [addHistory]);
 
   useEffect(() => {
