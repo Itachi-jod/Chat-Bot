@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -21,6 +21,7 @@ const HelpComponent = () => (
   <div>
     <p className="text-primary font-bold mb-2">CyberStream Command List</p>
     <ul className="list-disc list-inside">
+      <li><span className="text-accent font-bold">ask [question]</span> - Ask a question to Gemini AI.</li>
       <li><span className="text-accent font-bold">video [search|url]</span> - Search for a video and play it.</li>
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
@@ -190,6 +191,24 @@ export default function Terminal() {
                         <source src={songResult.download_url} type="audio/mpeg" />
                         Your browser does not support the audio element.
                     </audio>
+                </div>
+            )
+        }
+        break;
+      case 'ask':
+        if (!query) {
+          addHistory(<p className="text-red-500">Error: Please provide a question.</p>);
+          break;
+        }
+        addHistory(<p>Asking Gemini: <span className="text-primary">{query}</span>...</p>);
+        const geminiResult = await askGemini(query);
+        if (geminiResult.error) {
+            addHistory(<p className="text-red-500">Error: {geminiResult.error}</p>);
+        } else {
+            addHistory(
+                <div>
+                    <p className="text-primary font-bold">Gemini says:</p>
+                    <p>{geminiResult.response}</p>
                 </div>
             )
         }

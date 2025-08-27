@@ -113,3 +113,17 @@ export async function getSong(query: string) {
         return { error: err.message || "An unexpected error occurred." };
     }
 }
+
+export async function askGemini(question: string) {
+    try {
+        const apiUrl = `https://kaiz-apis.gleeze.com/api/gemini-pro?ask=${encodeURIComponent(question)}&uid=100001139113438&apikey=${KAIZJI_API_KEY}`;
+        const res = await axios.get(apiUrl);
+        if (res.data?.response) {
+            return { response: res.data.response };
+        }
+        return { error: "Could not get a response from Gemini." };
+    } catch (err: any) {
+        console.error("Gemini API error:", err);
+        return { error: err.message || "An unexpected error occurred while contacting Gemini API." };
+    }
+}
