@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -31,6 +31,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">tikstalk [username]</span> - Stalk a TikTok user's profile.</li>
       <li><span className="text-accent font-bold">quote</span> - Get a random motivational quote.</li>
+      <li><span className="text-accent font-bold">attack [name]</span> - Get a roast for someone.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
       <li><span className="text-accent font-bold">clock</span> - Toggle the live digital clock.</li>
@@ -368,6 +369,16 @@ export default function Terminal() {
                     </div>
                 </div>
             )
+        }
+        break;
+      case 'attack':
+        const targetName = args.join(' ') || undefined;
+        addHistory(<p>Generating roast for <span className="text-primary">{targetName || '...an unnamed victim'}</span>...</p>);
+        const roastResult = await getRoast(targetName);
+        if (roastResult.error) {
+          addHistory(<p className="text-red-500">Error: {roastResult.error}</p>);
+        } else {
+          addHistory(<p className="text-red-400 select-all">{roastResult.roast}</p>);
         }
         break;
       default:

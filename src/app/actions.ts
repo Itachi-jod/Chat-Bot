@@ -188,3 +188,24 @@ export async function getTikTokUserInfo(username: string) {
     return { error: err.response?.data?.message || "Failed to fetch TikTok user info." };
   }
 }
+
+export async function getRoast(name?: string) {
+  const roastName = name || 'buddy';
+  try {
+    const res = await axios.get(`https://fyuk.vercel.app/roast?name=${encodeURIComponent(roastName)}`);
+    const roast = res.data?.roast?.trim();
+    if (!roast) throw new Error("Empty roast response");
+    return { roast };
+  } catch (err) {
+    console.error("Roast API error:", err);
+    try {
+      // Fallback API
+      const fallbackRes = await axios.get("https://evilinsult.com/generate_insult.php?lang=en&type=json");
+      const insult = fallbackRes.data.insult;
+      return { roast: `${roastName}, ${insult}` };
+    } catch (fallbackErr) {
+      console.error("Fallback Roast API error:", fallbackErr);
+      return { error: "Failed to fetch a roast. You're safe... for now." };
+    }
+  }
+}
