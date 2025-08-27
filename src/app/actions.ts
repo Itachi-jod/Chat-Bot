@@ -10,6 +10,7 @@ import axios from "axios";
 const SEARCH_API = "https://dns-pxx0.onrender.com/search?query=";
 const DOWNLOAD_API = "https://dens-yt-dl0.onrender.com/api/download?url=";
 const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
+const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 
 
 type VideoStream = {
@@ -126,4 +127,18 @@ export async function askGemini(question: string) {
         console.error("Gemini API error:", err);
         return { error: err.message || "An unexpected error occurred while contacting Gemini API." };
     }
+}
+
+export async function getPinterestImages(query: string, amount: number) {
+  try {
+    const res = await axios.get(`${PINTEREST_API}${encodeURIComponent(query)}`);
+    const data = res.data?.data || [];
+    if (!data.length) {
+      return { error: `No results found for: ${query}` };
+    }
+    return { images: data.slice(0, amount) };
+  } catch (error) {
+    console.error("Pinterest API error:", error);
+    return { error: "Failed to fetch Pinterest images." };
+  }
 }

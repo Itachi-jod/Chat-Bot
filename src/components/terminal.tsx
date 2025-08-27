@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -25,7 +25,9 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">video [search|url]</span> - Search for a video and play it.</li>
       <li><span className="text-accent font-bold">sing [song name]</span> - Search for a song and play the audio.</li>
       <li><span className="text-accent font-bold">waiko [waifu|neko]</span> - Display a random waifu or neko image.</li>
+      <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
+      <li><span className="text-accent font-bold">contact</span> - Show owner's contact information.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
       <li><span className="text-accent font-bold">welcome</span> - Shows the welcome message again.</li>
@@ -103,6 +105,14 @@ export default function Terminal() {
         break;
       case 'welcome':
         addHistory(<WelcomeComponent />);
+        break;
+      case 'contact':
+        addHistory(
+          <div>
+            <p className="text-primary font-bold">Owner Contact Information:</p>
+            <p>Phone: 9815598649</p>
+          </div>
+        );
         break;
       case 'theme':
         const theme = (args[0] || 'purple').toLowerCase();
@@ -211,6 +221,39 @@ export default function Terminal() {
                     <p>{geminiResult.response}</p>
                 </div>
             )
+        }
+        break;
+      case 'pinterest':
+      case 'pin':
+        const searchKeyword = args[0];
+        if (!searchKeyword) {
+          addHistory(<p className="text-red-500">Error: Please provide a search keyword.</p>);
+          break;
+        }
+        let amount = parseInt(args[1]) || 5;
+        if (isNaN(amount) || amount < 1) amount = 5;
+        if (amount > 70) amount = 70;
+        
+        addHistory(<p>Searching Pinterest for <span className="text-primary">{searchKeyword}</span>...</p>);
+        const pinResult = await getPinterestImages(searchKeyword, amount);
+
+        if (pinResult.error) {
+          addHistory(<p className="text-red-500">Error: {pinResult.error}</p>);
+        } else if (pinResult.images && pinResult.images.length > 0) {
+          addHistory(
+            <div>
+              <p>Pinterest results for: <span className="font-bold text-primary">{searchKeyword}</span></p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {pinResult.images.map((url, index) => (
+                  <a href={url} target="_blank" rel="noopener noreferrer" key={index}>
+                    <Image src={url} alt={`Pinterest image ${index + 1}`} width={150} height={200} className="rounded-lg border-glow object-cover" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        } else {
+          addHistory(<p className="text-red-500">Error: No images found.</p>);
         }
         break;
       default:
