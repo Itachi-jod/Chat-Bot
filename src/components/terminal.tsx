@@ -119,7 +119,7 @@ export default function Terminal() {
         if (result.error) {
           addHistory(<p className="text-red-500">Error: {result.error}</p>);
         } else if (result.streams && result.streams.length > 0) {
-            const videoStream = result.streams.find(s => s.quality.includes('720p')) || result.streams.find(s => s.quality.includes('360p')) || result.streams[0];
+            const videoStream = result.streams.find(s => s.quality?.includes('720p')) || result.streams.find(s => s.quality?.includes('360p')) || result.streams[0];
             addHistory(
               <div>
                 <p>Now playing: <span className="font-bold text-primary">{result.title}</span> ({videoStream.quality})</p>
