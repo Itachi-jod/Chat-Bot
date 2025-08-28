@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
         hostname: 'api.flux.party',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'p16-pu-sign-no.tiktokcdn-eu.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

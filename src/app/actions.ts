@@ -17,6 +17,7 @@ const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 const XVIDEOS_API = "https://kaiz-apis.gleeze.com/api/xvideos";
 const FLUX_API = "https://kaiz-apis.gleeze.com/api/flux";
 const GEMINI_API = "https://kaiz-apis.gleeze.com/api/gemini";
+const TIKTOK_SEARCH_API = "https://kaiz-apis.gleeze.com/api/tiksearch";
 
 
 type VideoStream = {
@@ -345,20 +346,6 @@ export async function getXVideo(query?: string): Promise<VideoSearchResult> {
         const videoInfo = searchData.videos[0];
         const videoTitle = videoInfo.title;
 
-        // The API provides different qualities in the response, let's pretend it does
-        // In a real scenario, you might need another API call to get qualities
-        // For this mock, we will use the single mp4url and create fake streams.
-        const downloadUrl = videoInfo.mp4url;
-        if (!downloadUrl) {
-            return { error: "Could not find a video URL." };
-        }
-
-        const streams = [
-            { key: 'high', quality: 'High', download_url: downloadUrl, size: 'N/A' },
-            { key: 'low', quality: 'Low', download_url: downloadUrl, size: 'N/A' },
-        ];
-        
-        // Let's assume the API for video details provides multiple qualities
         const downloadRes = await axios.get(`https://kaiz-apis.gleeze.com/api/xvideos/download?url=${encodeURIComponent(videoInfo.url)}&apikey=${KAIZJI_API_KEY}`);
         const downloadData = downloadRes.data;
         
@@ -384,4 +371,27 @@ export async function getXVideo(query?: string): Promise<VideoSearchResult> {
         console.error("XVideo API error:", err);
         return { error: err.message || "An unexpected error occurred while fetching video." };
     }
+}
+
+export async function searchTikTokVideo(query: string) {
+  if (!query) {
+    return { error: "Please provide a search query." };
+  }
+  try {
+    const url = `${TIKTOK_SEARCH_API}?search=${encodeURIComponent(query)}&apikey=${KAIZJI_API_KEY}`;
+    const res = await axios.get(url);
+    const video = res.data?.data?.videos?.[0];
+
+    if (!video) {
+      return { error: `No TikTok videos found for "${query}".` };
+    }
+    
+    return {
+      title: video.title,
+      videoUrl: video.play,
+    };
+  } catch (err: any) {
+    console.error("TikTok Search API error:", err);
+    return { error: err.message || "Failed to search for TikTok video." };
+  }
 }
