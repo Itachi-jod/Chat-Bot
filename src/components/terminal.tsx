@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -520,10 +521,10 @@ export default function Terminal() {
         }
         addHistory(<p>Fetching anime info for <span className="text-primary">{animeTitle} episode {animeEpisode}</span>...</p>);
         const animeResult = await getAnimeInfo(animeTitle, animeEpisode);
-        if (animeResult.error) {
-            addHistory(<p className="text-red-500">Error: {animeResult.error}</p>);
+        if (animeResult.error || !animeResult.data?.response) {
+            addHistory(<p className="text-red-500">Error: {animeResult.error || 'Could not find the specified anime/episode.'}</p>);
         } else if (animeResult.data) {
-            const anime = animeResult.data;
+            const anime = animeResult.data.response;
             const episodeInfo = anime.episodeList?.[0];
             
             addHistory(
@@ -627,5 +628,3 @@ export default function Terminal() {
     </div>
   );
 }
-
-    

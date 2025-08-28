@@ -1,3 +1,4 @@
+
 "use server";
 
 import { config } from "dotenv";
@@ -282,6 +283,21 @@ export async function downloadFromUrl(url: string) {
                 hostname = parse(finalUrl).hostname?.toLowerCase() || '';
             }
         }
+        
+        if (hostname.includes('animeheaven.me')) {
+            const downloadRes = await fetch(DOWNLOAD_API + encodeURIComponent(finalUrl));
+            if (!downloadRes.ok) {
+                throw new Error(`Failed to fetch anime download links from ${finalUrl}`);
+            }
+             const downloadData = await downloadRes.json();
+             const streamsData = downloadData.response;
+             if (!streamsData || typeof streamsData !== 'object' || Object.keys(streamsData).length === 0) {
+                return { error: "No downloadable video found for this anime episode." };
+            }
+            const videoUrl = streamsData['720p']?.download_url || streamsData['360p']?.download_url || Object.values(streamsData)[0].download_url;
+            return { title: 'Anime Episode', videoUrl };
+        }
+
 
         let apiEndpoint: string | null = null;
         for (const key in PLATFORM_API_MAP) {
@@ -292,14 +308,6 @@ export async function downloadFromUrl(url: string) {
         }
 
         if (!apiEndpoint) {
-             if (finalUrl.includes('animeheaven.me')) {
-                // This is a special case for the anime command.
-                // The universal downloader doesn't support animeheaven directly.
-                // We assume the URL is valid and just need to find a way to get raw video
-                // For now, we can't process this link further, so we'll return an error.
-                // In the future, a dedicated scraper for this might be needed.
-                 return { error: `Unsupported platform: ${hostname}` };
-             }
             return { error: `Unsupported platform: ${hostname}` };
         }
 
@@ -444,8 +452,8 @@ export async function getAnimeInfo(title: string, episode: string) {
   try {
     const url = `${ANIMEHEAVEN_API}?title=${encodeURIComponent(title)}&episode=${episode}&apikey=${KAIZJI_API_KEY}`;
     const res = await axios.get(url);
-    if (res.data?.response) {
-      return { data: res.data.response };
+    if (res.data) {
+      return { data: res.data };
     } else {
       return { error: "Could not find the specified anime/episode." };
     }
@@ -454,5 +462,3 @@ export async function getAnimeInfo(title: string, episode: string) {
     return { error: err.message || "An unexpected error occurred." };
   }
 }
-
-    
