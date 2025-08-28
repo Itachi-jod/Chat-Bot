@@ -296,7 +296,7 @@ export default function Terminal() {
           break;
         }
         addHistory(<p>Asking Gemini: <span className="text-primary">{query}</span>...</p>);
-        const geminiResult = await askGemini(query);
+        const geminiResult = await askGemini(query, user || 'guest');
         if (geminiResult.error) {
             addHistory(<p className="text-red-500">Error: {geminiResult.error}</p>);
         } else {

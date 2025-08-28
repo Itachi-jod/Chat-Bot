@@ -16,7 +16,7 @@ const KAIZJI_API_KEY = "ed9ad8f5-3f66-4178-aec2-d3ab4f43ad0d";
 const PINTEREST_API = "https://www.bhandarimilan.info.np/api/pinterest?query=";
 const XVIDEOS_API = "https://kaiz-apis.gleeze.com/api/xvideos";
 const FLUX_API = "https://kaiz-apis.gleeze.com/api/flux";
-const GEMINI_API = "https://kaiz-apis.gleeze.com/api/gemini";
+const GEMINI_PRO_API = "https://kaiz-apis.gleeze.com/api/gemini-pro";
 const TIKTOK_SEARCH_API = "https://kaiz-apis.gleeze.com/api/tiksearch";
 const SHOTI_API = "https://kaiz-apis.gleeze.com/api/shoti";
 const PICKUPLINE_API = "https://kaiz-apis.gleeze.com/api/pickuplines";
@@ -146,9 +146,9 @@ export async function getSong(query: string) {
     }
 }
 
-export async function askGemini(question: string) {
+export async function askGemini(question: string, uid: string) {
     try {
-      const url = `${GEMINI_API}?prompt=${encodeURIComponent(question)}&apikey=${KAIZJI_API_KEY}`;
+      const url = `${GEMINI_PRO_API}?ask=${encodeURIComponent(question)}&uid=${uid}&apikey=${KAIZJI_API_KEY}`;
       const res = await axios.get(url);
       if (res.data?.response) {
         return { response: res.data.response };
