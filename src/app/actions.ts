@@ -18,6 +18,9 @@ const XVIDEOS_API = "https://kaiz-apis.gleeze.com/api/xvideos";
 const FLUX_API = "https://kaiz-apis.gleeze.com/api/flux";
 const GEMINI_API = "https://kaiz-apis.gleeze.com/api/gemini";
 const TIKTOK_SEARCH_API = "https://kaiz-apis.gleeze.com/api/tiksearch";
+const SHOTI_API = "https://kaiz-apis.gleeze.com/api/shoti";
+const PICKUPLINE_API = "https://kaiz-apis.gleeze.com/api/pickuplines";
+const ANIMEHEAVEN_API = "https://kaiz-apis.gleeze.com/api/animeheaven";
 
 
 type VideoStream = {
@@ -393,5 +396,53 @@ export async function searchTikTokVideo(query: string) {
   } catch (err: any) {
     console.error("TikTok Search API error:", err);
     return { error: err.message || "Failed to search for TikTok video." };
+  }
+}
+
+export async function getShotiVideo() {
+    try {
+        const url = `${SHOTI_API}?apikey=${KAIZJI_API_KEY}`;
+        const res = await axios.get(url);
+        if (res.data?.shoti?.videoUrl) {
+            return {
+                videoUrl: res.data.shoti.videoUrl,
+                nickname: res.data.shoti.nickname,
+            };
+        } else {
+            return { error: "Could not get a video from Shoti API." };
+        }
+    } catch (err: any) {
+        console.error("Shoti API error:", err);
+        return { error: err.message || "An unexpected error occurred while contacting Shoti API." };
+    }
+}
+
+export async function getPickUpLine() {
+    try {
+        const url = `${PICKUPLINE_API}?apikey=${KAIZJI_API_KEY}`;
+        const res = await axios.get(url);
+        if (res.data?.pickup) {
+            return { pickupline: res.data.pickup };
+        } else {
+            return { error: "Could not get a pick-up line." };
+        }
+    } catch (err: any) {
+        console.error("Pickupline API error:", err);
+        return { error: err.message || "Failed to fetch a pick-up line." };
+    }
+}
+
+export async function getAnimeInfo(title: string, episode: string) {
+  try {
+    const url = `${ANIMEHEAVEN_API}?title=${encodeURIComponent(title)}&episode=${episode}&apikey=${KAIZJI_API_KEY}`;
+    const res = await axios.get(url);
+    if (res.data?.response) {
+      return { data: res.data.response };
+    } else {
+      return { error: "Could not find the specified anime/episode." };
+    }
+  } catch (err: any) {
+    console.error("AnimeHeaven API error:", err);
+    return { error: err.message || "An unexpected error occurred." };
   }
 }

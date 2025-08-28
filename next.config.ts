@@ -57,6 +57,12 @@ const nextConfig: NextConfig = {
         hostname: 'p16-pu-sign-no.tiktokcdn-eu.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'animeheaven.me',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

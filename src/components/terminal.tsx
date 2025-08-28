@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl, getXVideo, getFluxImage, searchTikTokVideo } from '@/app/actions';
+import { getUnrecognizedCommandSuggestion, searchVideo, getWaikoImage, getSong, askGemini, getPinterestImages, getQuote, getTikTokUserInfo, getRoast, downloadFromUrl, getXVideo, getFluxImage, searchTikTokVideo, getShotiVideo, getPickUpLine, getAnimeInfo } from '@/app/actions';
 import TypingAnimation from './typing-animation';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
@@ -33,8 +33,11 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">pinterest [query] [amount]</span> - Get images from Pinterest.</li>
       <li><span className="text-accent font-bold">tikstalk [username]</span> - Stalk a TikTok user's profile.</li>
       <li><span className="text-accent font-bold">tiksearch [query]</span> - Search for a TikTok video.</li>
-       <li><span className="text-accent font-bold">xv [query]</span> - Search for a video. Use `xv` for random.</li>
+      <li><span className="text-accent font-bold">xv [query]</span> - Search for a video. Use `xv` for random.</li>
+      <li><span className="text-accent font-bold">shoti</span> - Get a random short video.</li>
+      <li><span className="text-accent font-bold">anime [title] [episode]</span> - Get info about an anime episode.</li>
       <li><span className="text-accent font-bold">quote</span> - Get a random motivational quote.</li>
+      <li><span className="text-accent font-bold">pickupline</span> - Get a random pick-up line.</li>
       <li><span className="text-accent font-bold">attack [name]</span> - Get a roast for someone.</li>
       <li><span className="text-accent font-bold">theme [purple|green|blue|red]</span> - Changes the terminal color scheme.</li>
       <li><span className="text-accent font-bold">status</span> - Display system and session status.</li>
@@ -43,7 +46,7 @@ const HelpComponent = () => (
       <li><span className="text-accent font-bold">logout</span> - Logs out the current user.</li>
       <li><span className="text-accent font-bold">help</span> - Displays this list of commands.</li>
       <li><span className="text-accent font-bold">clear</span> - Clears the terminal history.</li>
-      <li><span className="text-accent font-bold">welcome</span> - Shows the welcome message again.</li>
+      <li><p><span className="text-accent font-bold">welcome</span> - Shows the welcome message again.</p></li>
     </ul>
   </div>
 );
@@ -362,6 +365,15 @@ export default function Terminal() {
           addHistory(<p className="text-primary italic">"{quoteResult.quote}"</p>);
         }
         break;
+      case 'pickupline':
+        addHistory(<p>Fetching a pick-up line...</p>);
+        const pickuplineResult = await getPickUpLine();
+        if (pickuplineResult.error) {
+          addHistory(<p className="text-red-500">Error: {pickuplineResult.error}</p>);
+        } else {
+          addHistory(<p className="text-primary italic">"{pickuplineResult.pickupline}"</p>);
+        }
+        break;
       case 'tikstalk':
         const username = args[0];
         if (!username) {
@@ -480,6 +492,65 @@ export default function Terminal() {
               </video>
             </div>
           );
+        }
+        break;
+    case 'shoti':
+        addHistory(<p>Fetching a random shoti video...</p>);
+        const shotiResult = await getShotiVideo();
+        if (shotiResult.error) {
+            addHistory(<p className="text-red-500">Error: {shotiResult.error}</p>);
+        } else if (shotiResult.videoUrl) {
+            addHistory(
+                <div>
+                    <p>Video from: <span className="font-bold text-primary">{shotiResult.nickname}</span></p>
+                    <video controls className="w-full max-w-2xl mt-2 rounded border-glow">
+                        <source src={shotiResult.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            )
+        }
+        break;
+    case 'anime':
+        const animeTitle = args[0];
+        const animeEpisode = args[1] || '1';
+        if (!animeTitle) {
+            addHistory(<p className="text-red-500">Error: Please provide an anime title.</p>);
+            break;
+        }
+        addHistory(<p>Fetching anime info for <span className="text-primary">{animeTitle} episode {animeEpisode}</span>...</p>);
+        const animeResult = await getAnimeInfo(animeTitle, animeEpisode);
+        if (animeResult.error) {
+            addHistory(<p className="text-red-500">Error: {animeResult.error}</p>);
+        } else if (animeResult.data) {
+            const anime = animeResult.data;
+            addHistory(
+                <div>
+                    <p className="text-primary font-bold text-lg">{anime.title}</p>
+                    <div className="flex gap-4 mt-2">
+                        <Image src={anime.thumbnail} alt={anime.title} width={150} height={225} className="rounded-lg border-glow"/>
+                        <div>
+                            <p><span className="text-accent font-bold">Year:</span> {anime.year}</p>
+                            <p><span className="text-accent font-bold">Score:</span> {anime.score}</p>
+                            <p><span className="text-accent font-bold">Episodes:</span> {anime.episodes}</p>
+                            <p className="mt-2 text-sm italic">{anime.description}</p>
+                        </div>
+                    </div>
+                     {anime.episodeList && anime.episodeList.length > 0 && (
+                        <div className="mt-2">
+                            <p className="font-bold">Download Episode {animeEpisode}:</p>
+                            <a 
+                                href={anime.episodeList[0].download_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-accent hover:text-glow hover:underline"
+                            >
+                                Episode {anime.episodeList[0].episode}
+                            </a>
+                        </div>
+                     )}
+                </div>
+            )
         }
         break;
       default:
