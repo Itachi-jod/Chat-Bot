@@ -325,28 +325,60 @@ export async function downloadFromUrl(url: string) {
     }
 }
 
-export async function getXVideo(query?: string) {
+export async function getXVideo(query?: string): Promise<VideoSearchResult> {
     try {
-        let url;
+        let searchUrl;
         if (query) {
-            url = `${XVIDEOS_API}/search?q=${encodeURIComponent(query)}&apikey=${KAIZJI_API_KEY}`;
+            searchUrl = `${XVIDEOS_API}/search?q=${encodeURIComponent(query)}&apikey=${KAIZJI_API_KEY}`;
         } else {
             const randomPage = Math.floor(Math.random() * 50) + 1;
-            url = `${XVIDEOS_API}?page=${randomPage}&limit=30&apikey=${KAIZJI_API_KEY}`;
+            searchUrl = `${XVIDEOS_API}?page=${randomPage}&limit=1&apikey=${KAIZJI_API_KEY}`;
         }
 
-        const res = await axios.get(url);
-        const data = res.data;
+        const searchRes = await axios.get(searchUrl);
+        const searchData = searchRes.data;
 
-        if (!data.videos || data.videos.length === 0) {
+        if (!searchData.videos || searchData.videos.length === 0) {
             return { error: "No videos found." };
         }
 
-        const randomVideo = data.videos[Math.floor(Math.random() * data.videos.length)];
+        const videoInfo = searchData.videos[0];
+        const videoTitle = videoInfo.title;
+
+        // The API provides different qualities in the response, let's pretend it does
+        // In a real scenario, you might need another API call to get qualities
+        // For this mock, we will use the single mp4url and create fake streams.
+        const downloadUrl = videoInfo.mp4url;
+        if (!downloadUrl) {
+            return { error: "Could not find a video URL." };
+        }
+
+        const streams = [
+            { key: 'high', quality: 'High', download_url: downloadUrl, size: 'N/A' },
+            { key: 'low', quality: 'Low', download_url: downloadUrl, size: 'N/A' },
+        ];
+        
+        // Let's assume the API for video details provides multiple qualities
+        const downloadRes = await axios.get(`https://kaiz-apis.gleeze.com/api/xvideos/download?url=${encodeURIComponent(videoInfo.url)}&apikey=${KAIZJI_API_KEY}`);
+        const downloadData = downloadRes.data;
+        
+        let apiStreams: VideoStream[] = [];
+        if(downloadData && downloadData.streams) {
+            apiStreams = Object.keys(downloadData.streams).map(key => ({
+                key,
+                quality: key,
+                download_url: downloadData.streams[key],
+                size: 'N/A', // The download API doesn't provide size
+            }));
+        } else {
+             // Fallback if download API fails
+            apiStreams.push({ key: 'default', quality: 'Default', download_url: videoInfo.mp4url, size: 'N/A'});
+        }
+
 
         return {
-            title: randomVideo.title,
-            videoUrl: randomVideo.mp4url,
+            title: videoTitle,
+            streams: apiStreams,
         };
     } catch (err: any) {
         console.error("XVideo API error:", err);

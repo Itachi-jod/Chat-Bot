@@ -428,15 +428,36 @@ export default function Terminal() {
             const xvResult = await getXVideo(query);
             if (xvResult.error) {
                 addHistory(<p className="text-red-500">Error: {xvResult.error}</p>);
-            } else if (xvResult.videoUrl) {
-                addHistory(
-                    <div>
-                        <p>Now playing: <span className="font-bold text-primary">{xvResult.title}</span></p>
-                        <video controls className="w-full max-w-2xl mt-2 rounded border-glow" src={xvResult.videoUrl}>
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                )
+            } else if (xvResult.streams && xvResult.streams.length > 0) {
+                const videoStream = xvResult.streams.find(s => s.quality?.includes('High')) || xvResult.streams[0];
+                 addHistory(
+                  <div>
+                    <p>Now playing: <span className="font-bold text-primary">{xvResult.title}</span> ({videoStream.quality})</p>
+                    <video controls className="w-full max-w-2xl mt-2 rounded border-glow">
+                      <source src={videoStream.download_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                     <p className="mt-2">Other downloads:</p>
+                     <ul className="list-disc list-inside ml-4">
+                      {xvResult.streams?.map((stream) => (
+                        <li key={stream.key}>
+                          <a 
+                            href={stream.download_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            download
+                            className="text-accent hover:text-glow hover:underline"
+                            onClick={() => toast({ title: "Download Started", description: `Downloading ${xvResult.title} (${stream.quality})`})}
+                          >
+                            {stream.quality || 'Unknown quality'} ({stream.size})
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+            } else {
+                addHistory(<p className="text-red-500">Error: No video streams found.</p>);
             }
             break;
       default:
