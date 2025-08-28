@@ -109,7 +109,7 @@ export default function Terminal() {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      addHistory(<TypingAnimation text="Initializing Ryux..." onComplete={() => addHistory(<WelcomeComponent />)} />);
+      addHistory(<TypingAnimation text="Initializing Itachi..." onComplete={() => addHistory(<WelcomeComponent />)} />);
     }
   }, [addHistory]);
 
@@ -179,7 +179,7 @@ export default function Terminal() {
         addHistory(
           <div>
             <p className="text-primary font-bold">Owner Contact Information:</p>
-            <p>Phone: 9815598649</p>
+            <p>Phone: 9810416865</p>
           </div>
         );
         break;
