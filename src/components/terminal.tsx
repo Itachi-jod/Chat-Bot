@@ -56,12 +56,12 @@ const WelcomeComponent = () => (
     <div className="font-mono">
     <pre className="text-primary text-glow text-xs md:text-sm">
       {`
-  ██████╗ ██╗   ██╗██████╗ ███████╗██████╗  ███████╗████████╗██████╗ ██╗  ██╗ ███╗   ███╗
-  ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗ ██╔════╝╚══██╔══╝██╔══██╗██║  ██║ ████╗ ████║
-  ██║  ██║ ╚████╔╝ ██████╔╝█████╗  ██████╔╝ █████╗     ██║   ██████╔╝███████║ ██╔████╔██║
-  ██║  ██║  ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗ ██╔══╝     ██║   ██╔══██╗██╔══██║ ██║╚██╔╝██║
-  ██████╔╝   ██║   ██║  ██║███████╗██║  ██║ ███████╗   ██║   ██║  ██║██║  ██║ ██║ ╚═╝ ██║
-  ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═╝     ╚═╝
+  ██████╗ ██╗   ██╗██╗  ██╗██╗  ██╗
+  ██╔══██╗╚██╗ ██╔╝╚██╗██╔╝╚██╗██╔╝
+  ██████╔╝ ╚████╔╝  ╚███╔╝  ╚███╔╝ 
+  ██╔══██╗  ╚██╔╝   ██╔██╗  ██╔██╗ 
+  ██║  ██║   ██║   ██╔╝ ██╗██╔╝ ██╗
+  ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝
       `}
     </pre>
     <p className="mt-2">A futuristic hacker-style web bot interface.</p>
@@ -108,7 +108,7 @@ export default function Terminal() {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      addHistory(<TypingAnimation text="Initializing CyberStream..." onComplete={() => addHistory(<WelcomeComponent />)} />);
+      addHistory(<TypingAnimation text="Initializing Ryux..." onComplete={() => addHistory(<WelcomeComponent />)} />);
     }
   }, [addHistory]);
 
@@ -597,7 +597,7 @@ export default function Terminal() {
   return (
     <div className="h-full w-full bg-black/75 backdrop-blur-sm flex flex-col p-4 font-mono text-sm md:text-base">
       <div className="flex justify-between items-center mb-2">
-        <h1 className="text-lg text-primary text-glow">CyberStream</h1>
+        <h1 className="text-lg text-primary text-glow">Ryux</h1>
         {showClock && <DigitalClock />}
       </div>
       <div className="flex-grow overflow-y-auto pr-2">
