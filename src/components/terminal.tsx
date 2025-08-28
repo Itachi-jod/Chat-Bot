@@ -524,9 +524,11 @@ export default function Terminal() {
             addHistory(<p className="text-red-500">Error: {animeResult.error}</p>);
         } else if (animeResult.data) {
             const anime = animeResult.data;
+            const episodeInfo = anime.episodeList?.[0];
+            
             addHistory(
                 <div>
-                    <p className="text-primary font-bold text-lg">{anime.title}</p>
+                    <p className="text-primary font-bold text-lg">{anime.title} - Episode {episodeInfo?.episode || animeEpisode}</p>
                     <div className="flex gap-4 mt-2">
                         <Image src={anime.thumbnail} alt={anime.title} width={150} height={225} className="rounded-lg border-glow"/>
                         <div>
@@ -536,21 +538,39 @@ export default function Terminal() {
                             <p className="mt-2 text-sm italic">{anime.description}</p>
                         </div>
                     </div>
-                     {anime.episodeList && anime.episodeList.length > 0 && (
-                        <div className="mt-2">
-                            <p className="font-bold">Download Episode {animeEpisode}:</p>
-                            <a 
-                                href={anime.episodeList[0].download_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-accent hover:text-glow hover:underline"
-                            >
-                                Episode {anime.episodeList[0].episode}
-                            </a>
-                        </div>
-                     )}
                 </div>
-            )
+            );
+
+            if (episodeInfo?.download_url) {
+                addHistory(<p>Attempting to find a playable stream for the episode...</p>);
+                const animeDlResult = await downloadFromUrl(episodeInfo.download_url);
+
+                if (animeDlResult.error) {
+                    addHistory(<p className="text-red-500">Could not find a playable stream. Here is the download link:</p>);
+                    addHistory(
+                        <a 
+                            href={episodeInfo.download_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-accent hover:text-glow hover:underline"
+                        >
+                            Download Episode {episodeInfo.episode}
+                        </a>
+                    );
+                } else if (animeDlResult.videoUrl) {
+                    addHistory(
+                        <div>
+                            <p>Now playing: <span className="font-bold text-primary">{animeDlResult.title}</span></p>
+                            <video controls className="w-full max-w-2xl mt-2 rounded border-glow">
+                                <source src={animeDlResult.videoUrl} type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    )
+                }
+            } else {
+                 addHistory(<p className="text-red-500">No download link found for this episode.</p>);
+            }
         }
         break;
       default:
