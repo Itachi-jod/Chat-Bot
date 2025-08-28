@@ -163,12 +163,9 @@ export async function getFluxImage(prompt: string) {
   }
   try {
     const url = `${FLUX_API}?prompt=${encodeURIComponent(prompt)}&apikey=${KAIZJI_API_KEY}`;
-    const res = await axios.get(url);
-    if (res.data?.img_url) {
-      return { imageUrl: res.data.img_url };
-    } else {
-      return { error: "Could not generate an image from the prompt." };
-    }
+    const res = await axios.get(url, { responseType: 'arraybuffer' });
+    const imageUrl = `data:image/jpeg;base64,${Buffer.from(res.data, 'binary').toString('base64')}`;
+    return { imageUrl };
   } catch (err: any) {
     console.error("Flux API error:", err);
     return { error: err.message || "Failed to generate image." };
