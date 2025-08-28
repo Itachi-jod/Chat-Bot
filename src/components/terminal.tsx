@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -54,7 +55,7 @@ const HelpComponent = () => (
 
 const WelcomeComponent = () => (
     <div className="font-mono">
-    <pre className="text-primary text-glow text-xs md:text-sm">
+    <pre className="text-accent text-glow text-xs md:text-sm">
       {`
   ██████╗ ██╗   ██╗██╗  ██╗██╗  ██╗
   ██╔══██╗╚██╗ ██╔╝╚██╗██╔╝╚██╗██╔╝
@@ -628,3 +629,4 @@ export default function Terminal() {
     </div>
   );
 }
+
